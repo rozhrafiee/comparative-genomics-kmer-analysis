@@ -1,0 +1,112 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env/
+.Python
+
+# Distribution / packaging
+build/
+dist/
+*.egg
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Installer / packaging logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Type checkers / linters
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.pyre/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+
+# OS
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Python tooling local configs (keep shared ones tracked if added intentionally)
+.python-version
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# Compressed archives (re-download from NCBI instead of committing)
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# Optional large sequence dumps outside the curated NCBI packages
+# (tracked *.fna under data/ncbi_dataset*/ remain in the repo)
+*.fastq
+*.fq
+*.fastq.gz
+*.fq.gz
+*.bam
+*.sam
+*.cram
+*.vcf
+*.vcf.gz
+*.gff
+*.gff3
+*.gtf
+
+# Matplotlib / plotting cache
+.matplotlib/
+
+# Local scratch / notes not meant for the repo
+*.local
+scratch/
+tmp/
+temp/
