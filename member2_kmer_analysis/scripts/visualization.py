@@ -22,6 +22,7 @@ from kmer_analysis import (
     DEFAULT_K,
     DEFAULT_OUTPUT_DIR,
     build_kmer_matrix,
+    format_organism_label,
     load_sequences,
     resolve_input_dir,
 )
@@ -29,6 +30,15 @@ from similarity import cosine_similarity_matrix, euclidean_distance_matrix
 
 FIGURES_DIR_NAME = "figures"
 DPI = 150
+
+
+def with_display_labels(matrix: pd.DataFrame) -> pd.DataFrame:
+    """Rename matrix axes to readable organism names."""
+    labels = [format_organism_label(str(idx)) for idx in matrix.index]
+    renamed = matrix.copy()
+    renamed.index = labels
+    renamed.columns = labels
+    return renamed
 
 
 def ensure_figures_dir(output_dir: Path) -> Path:
@@ -39,9 +49,10 @@ def ensure_figures_dir(output_dir: Path) -> Path:
 
 def plot_heatmap(dist_matrix: pd.DataFrame, figures_dir: Path) -> Path:
     """Euclidean distance heatmap."""
-    fig, ax = plt.subplots(figsize=(8, 6))
+    labeled = with_display_labels(dist_matrix)
+    fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(
-        dist_matrix,
+        labeled,
         annot=True,
         fmt=".3f",
         cmap="YlOrRd",
@@ -51,6 +62,8 @@ def plot_heatmap(dist_matrix: pd.DataFrame, figures_dir: Path) -> Path:
         cbar_kws={"label": "Euclidean Distance"},
     )
     ax.set_title("K-mer Profile Distance Heatmap")
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
     plt.tight_layout()
     path = figures_dir / "heatmap.png"
     fig.savefig(path, dpi=DPI, bbox_inches="tight")
@@ -60,9 +73,10 @@ def plot_heatmap(dist_matrix: pd.DataFrame, figures_dir: Path) -> Path:
 
 def plot_similarity_matrix(cos_matrix: pd.DataFrame, figures_dir: Path) -> Path:
     """Cosine similarity heatmap."""
-    fig, ax = plt.subplots(figsize=(8, 6))
+    labeled = with_display_labels(cos_matrix)
+    fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(
-        cos_matrix,
+        labeled,
         annot=True,
         fmt=".3f",
         cmap="viridis",
@@ -74,6 +88,8 @@ def plot_similarity_matrix(cos_matrix: pd.DataFrame, figures_dir: Path) -> Path:
         cbar_kws={"label": "Cosine Similarity"},
     )
     ax.set_title("K-mer Profile Cosine Similarity Matrix")
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
     plt.tight_layout()
     path = figures_dir / "similarity_matrix.png"
     fig.savefig(path, dpi=DPI, bbox_inches="tight")
@@ -89,13 +105,19 @@ def plot_pca(kmer_matrix: pd.DataFrame, figures_dir: Path) -> Path:
     scaled = scaler.fit_transform(kmer_matrix.values)
     pca = PCA(n_components=n_comp)
     coords = pca.fit_transform(scaled)
-    labels = kmer_matrix.index.tolist()
+    labels = [format_organism_label(str(idx)) for idx in kmer_matrix.index]
 
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(10, 7))
     if n_comp >= 2:
         ax.scatter(coords[:, 0], coords[:, 1], s=100, c="steelblue", edgecolors="black")
         for i, label in enumerate(labels):
-            ax.annotate(label, (coords[i, 0], coords[i, 1]), xytext=(5, 5), textcoords="offset points")
+            ax.annotate(
+                label,
+                (coords[i, 0], coords[i, 1]),
+                xytext=(6, 6),
+                textcoords="offset points",
+                fontsize=9,
+            )
         var1 = pca.explained_variance_ratio_[0] * 100
         var2 = pca.explained_variance_ratio_[1] * 100
         ax.set_xlabel(f"PC1 ({var1:.1f}% variance)")
@@ -117,13 +139,14 @@ def plot_pca(kmer_matrix: pd.DataFrame, figures_dir: Path) -> Path:
 
 def plot_dendrogram(dist_matrix: pd.DataFrame, figures_dir: Path) -> Path:
     """Hierarchical clustering dendrogram."""
-    condensed = squareform(dist_matrix.values, checks=False)
+    labeled = with_display_labels(dist_matrix)
+    condensed = squareform(labeled.values, checks=False)
     Z = linkage(condensed, method="ward")
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(11, 6))
     dendrogram(
         Z,
-        labels=dist_matrix.index.tolist(),
+        labels=labeled.index.tolist(),
         leaf_rotation=45,
         leaf_font_size=10,
         ax=ax,
@@ -141,19 +164,20 @@ def plot_entropy_comparison(entropy_path: Path, figures_dir: Path) -> Path | Non
     """Bar chart comparing Shannon entropy across sequences."""
     if not entropy_path.exists():
         return None
-    entropy_df = pd.read_csv(entropy_path)
-    fig, ax = plt.subplots(figsize=(8, 6))
+    entropy_df = pd.read_csv(entropy_path).copy()
+    entropy_df["organism"] = entropy_df["sequence_id"].map(format_organism_label)
+    fig, ax = plt.subplots(figsize=(10, 6))
     sns.barplot(
         data=entropy_df,
-        x="sequence_id",
+        x="organism",
         y="shannon_entropy",
-        hue="sequence_id",
+        hue="organism",
         palette="muted",
         legend=False,
         ax=ax,
     )
     ax.set_title("Shannon Entropy Comparison (K-mer Distribution)")
-    ax.set_xlabel("Sequence")
+    ax.set_xlabel("Organism")
     ax.set_ylabel("Shannon Entropy (bits)")
     ax.tick_params(axis="x", rotation=45)
     plt.tight_layout()

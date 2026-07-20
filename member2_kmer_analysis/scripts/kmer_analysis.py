@@ -52,6 +52,22 @@ def count_kmers_from_fasta(fasta_path: Path, k: int) -> Counter:
     return total_counts
 
 
+def format_organism_label(sequence_id: str) -> str:
+    """Convert stored sequence IDs into readable organism labels for plots."""
+    cleaned = sequence_id.replace("_", " ").strip()
+    # Drop common strain suffixes for cleaner figure labels.
+    for suffix in (
+        " OR74A",
+        " AX4",
+        " CBS 5749",
+        " Bristol N2",
+        " CLIB89(W29)",
+    ):
+        if cleaned.endswith(suffix):
+            cleaned = cleaned[: -len(suffix)].strip()
+    return cleaned
+
+
 def read_organism_name(dataset_dir: Path) -> str:
     """Read organism scientific name from NCBI data_summary.tsv."""
     summary_files = list(dataset_dir.rglob("data_summary.tsv"))
@@ -63,6 +79,10 @@ def read_organism_name(dataset_dir: Path) -> str:
         if len(lines) >= 2:
             organism = lines[1].split("\t")[0].strip()
             if organism:
+                # Keep binomial name (Genus species); drop strain suffixes.
+                parts = organism.split()
+                if len(parts) >= 2:
+                    organism = f"{parts[0]} {parts[1]}"
                 return organism.replace(" ", "_")
     except OSError:
         pass
@@ -222,21 +242,25 @@ def create_demo_data(output_dir: Path | None = None) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     demo_path = output_dir / "demo_sequences.fasta"
     sequences = {
-        "species_A": (
+        "Caenorhabditis_elegans": (
             "ATCGATCGATCGTATAAAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAG"
             "ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG"
         ),
-        "species_B": (
+        "Neurospora_crassa": (
             "GCTAGCTAGCTAGCTATAAAAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTA"
             "GCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTA"
         ),
-        "species_C": (
+        "Yarrowia_lipolytica": (
             "TTTTAAAACCCCGGGGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG"
             "AAAATTTTCCCCGGGGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG"
         ),
-        "species_D": (
+        "Dictyostelium_discoideum": (
             "CGCGCGCGCGCGTATAAACGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCG"
             "GCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGC"
+        ),
+        "Eremothecium_coryli": (
+            "ACGTACGTACGTTATAAAACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT"
+            "TACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACG"
         ),
     }
     with demo_path.open("w", encoding="utf-8") as handle:

@@ -1,0 +1,3 @@
+Organism Scientific Name	Organism Common Name	Organism Qualifier	Taxonomy id	Assembly Name	Assembly Accession	Source	Annotation	Level	Contig N50	Size	Submission Date	Gene Count	BioProject	BioSample
+Neurospora crassa OR74A		strain: OR74A	367110	NC12	GCA_000182925.2	GenBank	Annotation submitted by Broad Institute	Chromosome	656009	41037538	2013-10-25	10591	PRJNA13841	SAMN02953583
+Neurospora crassa OR74A		strain: OR74A	367110	NC12	GCF_000182925.2	RefSeq	Annotation submitted by Broad Institute	Chromosome	656009	41037538	2013-10-25	10590	PRJNA13841	SAMN02953583

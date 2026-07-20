@@ -1,0 +1,3 @@
+Organism Scientific Name	Organism Common Name	Organism Qualifier	Taxonomy id	Assembly Name	Assembly Accession	Source	Annotation	Level	Contig N50	Size	Submission Date	Gene Count	BioProject	BioSample
+Caenorhabditis elegans		strain: Bristol N2	6239	WBcel235	GCA_000002985.3	GenBank	Annotation submitted by C. elegans Sequencing Consortium	Complete Genome	17493829	100272607	2013-02-07	46890	PRJNA13758	
+Caenorhabditis elegans		strain: Bristol N2	6239	WBcel235	GCF_000002985.6	RefSeq	WormBase WS298	Complete Genome	17493829	100272607	2013-02-07	46926	PRJNA13758	

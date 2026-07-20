@@ -1,0 +1,3 @@
+Organism Scientific Name	Organism Common Name	Organism Qualifier	Taxonomy id	Assembly Name	Assembly Accession	Source	Annotation	Level	Contig N50	Size	Submission Date	Gene Count	BioProject	BioSample
+Yarrowia lipolytica		strain: CLIB89(W29)	4952	ASM176148v1	GCA_001761485.1	GenBank	Annotation submitted by University of California, Irvine	Complete Genome	3629463	20500066	2016-10-12	8746	PRJNA295780	SAMN04088558
+Yarrowia lipolytica		strain: CLIB89(W29)	4952	ASM176148v1	GCF_001761485.1	RefSeq	Annotation submitted by University of California, Irvine	Complete Genome	3629463	20500066	2016-10-12	8689	PRJNA295780	SAMN04088558
