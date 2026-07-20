@@ -1,0 +1,24 @@
+Student 1 GC analysis quality-control report
+
+Checks:
+[PASS] All symbol counts sum to total sequence length.
+[PASS] Valid ATGC length equals A+T+G+C.
+[PASS] GC count equals G+C.
+[PASS] All primary GC percentages are between 0 and 100.
+[PASS] Genome totals equal valid, ambiguous, and unexpected symbol totals.
+[PASS] No empty FASTA files.
+[PASS] No zero-length FASTA records.
+[PASS] No duplicate sequence identifiers.
+[PASS] No unexpected non-IUPAC sequence symbols.
+
+Warnings:
+[WARNING] Four supplied files are not among the five species named in the project brief; their header-derived identities are retained and reported.
+[WARNING] Source database is not explicitly available in the provided files.
+[WARNING] Chromosome/record observations are nested within genomes and are not independent biological replicates.
+[WARNING] Organism-level correlation uses n=5 available genomes and has low statistical power.
+
+Records analysed: 92
+Genomes analysed: 5
+Statistical result rows: 6
+
+Corrective actions: FASTA letters were counted case-insensitively; ambiguous symbols were excluded from the primary GC denominator; no record was silently removed.

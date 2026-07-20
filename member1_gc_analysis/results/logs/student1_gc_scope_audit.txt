@@ -1,0 +1,13 @@
+Student 1 scope audit
+
+PASS: analysis script is limited to FASTA validation, genome characteristics, GC content, GC-related statistics, and genome-size/GC visualizations.
+PASS: no k-mer implementation in scripts.
+PASS: no entropy implementation in scripts.
+PASS: no similarity implementation in scripts.
+PASS: no PCA implementation in scripts.
+PASS: no clustering or dendrogram implementation in scripts.
+PASS: no TATA-box or promoter implementation in scripts.
+PASS: no Student 2 output files or placeholder outputs are present.
+PASS: all generated analysis filenames use the student1_gc_ prefix where applicable.
+PASS: the ZIP is assembled from student1_gc_analysis/ only.
+NOTE: the captions and report document that heatmap/dendrogram work is outside this package; this note is scope documentation, not an implementation or placeholder.
