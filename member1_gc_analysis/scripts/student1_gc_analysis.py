@@ -23,6 +23,11 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+INPUT_DIR = PROJECT_ROOT / "data" / "raw"
+OUTPUT_DIR = PROJECT_ROOT / "results"
+
 try:
     from statsmodels.stats.multitest import multipletests
 except Exception:  # pragma: no cover - optional at runtime
@@ -421,7 +426,7 @@ def generate_figures(records: pd.DataFrame, genome: pd.DataFrame, stats_df: pd.D
     fig, ax = plt.subplots(figsize=(9, 5)); ax.bar(labels, g["Genome_GC_Percent"], color=colors); ax.set_ylabel("Whole-genome GC (%)"); ax.set_title("Whole-genome GC content by organism"); ax.tick_params(axis="x", rotation=35); save_figure(fig, figure_dir, "student1_gc_01_genome_gc_barplot"); captions.append("Figure 1. Whole-genome GC percentage calculated from summed G+C and valid A+T+G+C counts.")
     fig, ax = plt.subplots(figsize=(9, 5)); ax.bar(labels, g["Total_Sequence_Length"] / 1e6, color=colors); ax.set_ylabel("Genome size (Mb; total sequence length)"); ax.set_title("Genome size by organism"); ax.tick_params(axis="x", rotation=35); save_figure(fig, figure_dir, "student1_gc_02_genome_size_barplot"); captions.append("Figure 2. Total uploaded FASTA sequence length in megabases.")
     fig, ax = plt.subplots(figsize=(7, 5)); ax.scatter(g["Total_Sequence_Length"] / 1e6, g["Genome_GC_Percent"], c=colors, s=80); [ax.annotate(label, (x, y), xytext=(4, 4), textcoords="offset points", fontsize=8) for label, x, y in zip(labels, g["Total_Sequence_Length"] / 1e6, g["Genome_GC_Percent"])]; ax.set_xlabel("Genome size (Mb)"); ax.set_ylabel("Whole-genome GC (%)"); ax.set_title("Genome size versus whole-genome GC"); save_figure(fig, figure_dir, "student1_gc_03_size_gc_scatter"); captions.append("Figure 3. Each point is one supplied genome; annotations identify organisms.")
-    fig, ax = plt.subplots(figsize=(7, 5)); ax.scatter(g["Total_Sequence_Length"] / 1e6, g["Genome_GC_Percent"], c=colors, s=80); 
+    fig, ax = plt.subplots(figsize=(7, 5)); ax.scatter(g["Total_Sequence_Length"] / 1e6, g["Genome_GC_Percent"], c=colors, s=80);
     if len(g) >= 2:
         slope, intercept = np.polyfit(g["Total_Sequence_Length"] / 1e6, g["Genome_GC_Percent"], 1); xx = np.linspace((g["Total_Sequence_Length"] / 1e6).min(), (g["Total_Sequence_Length"] / 1e6).max(), 100); ax.plot(xx, slope * xx + intercept, color="#222222", linestyle="--", label="OLS trend"); ax.legend()
     ax.set_xlabel("Genome size (Mb)"); ax.set_ylabel("Whole-genome GC (%)"); ax.set_title("Genome size versus GC with fitted trend"); save_figure(fig, figure_dir, "student1_gc_04_size_gc_trend"); captions.append("Figure 4. Ordinary least-squares trend is descriptive and is not a causal model.")
@@ -445,7 +450,7 @@ def generate_figures(records: pd.DataFrame, genome: pd.DataFrame, stats_df: pd.D
     for label in labels:
         for category, subset in [("Nuclear records", nuclear[nuclear["Scientific_Name"] == label]), ("Organellar records", organ[organ["Scientific_Name"] == label])]:
             if not subset.empty and subset["Valid_ATGC_Length"].sum() > 0: organ_rows.append((label, category, 100 * subset["GC_Count"].sum() / subset["Valid_ATGC_Length"].sum()))
-    fig, ax = plt.subplots(figsize=(10, 5)); odf = pd.DataFrame(organ_rows, columns=["Organism", "Category", "GC"]); 
+    fig, ax = plt.subplots(figsize=(10, 5)); odf = pd.DataFrame(organ_rows, columns=["Organism", "Category", "GC"]);
     if not odf.empty:
         pivot = odf.pivot(index="Organism", columns="Category", values="GC").reindex(labels); pivot.plot(kind="bar", ax=ax, color=["#4472C4", "#ED7D31"])
     ax.set_ylabel("Weighted GC (%)"); ax.set_title("Nuclear versus organellar GC where available"); ax.tick_params(axis="x", rotation=35); save_figure(fig, figure_dir, "student1_gc_14_nuclear_organellar_gc"); captions.append("Figure 14. Weighted nuclear and organellar GC; an organellar category is shown only where supplied headers identify it.")
@@ -481,8 +486,19 @@ def write_csv(df: pd.DataFrame, path: Path, columns: Optional[List[str]] = None)
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input-dir", type=Path, required=True)
-    parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument(
+        "--input-dir",
+        type=Path,
+        default=INPUT_DIR,
+        help="Input FASTA directory",
+    )
+
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=OUTPUT_DIR,
+        help="Output directory",
+    )
     args = parser.parse_args()
     out = args.output_dir
     table_dir, figure_dir, log_dir = out / "tables", out / "figures", out / "logs"
