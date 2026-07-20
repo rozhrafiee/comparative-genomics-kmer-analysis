@@ -31,17 +31,22 @@ pip install -r requirements.txt
 
 ## Input Data
 
-Place `.fa` or `.fasta` files in the project-level `data/` directory (relative to repo root):
+Place NCBI datasets under the project-level `data/` directory using the standard NCBI folder layout:
 
 ```
 comparative-genomics-kmer-analysis/
-├── data/                  # shared input FASTA files
+├── data/
+│   ├── ncbi_dataset1/    # e.g. Caenorhabditis elegans
+│   ├── ncbi_dataset2/    # e.g. Neurospora crassa
+│   ├── ncbi_dataset3/    # e.g. Yarrowia lipolytica
+│   ├── ncbi_dataset4/    # e.g. Dictyostelium discoideum
+│   └── ncbi_dataset5/    # e.g. Eremothecium coryli
 └── member2_kmer_analysis/
-    ├── scripts/
-    └── results/
 ```
 
-Alternatively, pass a custom path with `--input-dir`.
+The pipeline auto-discovers `ncbi_dataset*` folders, reads organism names from `data_summary.tsv`, and uses the RefSeq (`GCF_*`) or GenBank (`GCA_*`) `*_genomic.fna` assembly in each folder. All contigs/chromosomes in an assembly are pooled into one k-mer profile per species.
+
+Alternatively, pass a custom path with `--input-dir` or place flat `.fa`/`.fasta`/`.fna` files directly in `data/`.
 
 ### Demo Mode
 

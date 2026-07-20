@@ -41,14 +41,106 @@ def count_kmers(sequence: str, k: int) -> Counter:
     return counts
 
 
+def count_kmers_from_fasta(fasta_path: Path, k: int) -> Counter:
+    """Count k-mers across all records in a (possibly multi-contig) FASTA file."""
+    total_counts: Counter = Counter()
+    try:
+        for record in SeqIO.parse(fasta_path, "fasta"):
+            total_counts.update(count_kmers(str(record.seq), k))
+    except Exception as exc:
+        raise RuntimeError(f"Failed to count k-mers in {fasta_path}: {exc}") from exc
+    return total_counts
+
+
+def read_organism_name(dataset_dir: Path) -> str:
+    """Read organism scientific name from NCBI data_summary.tsv."""
+    summary_files = list(dataset_dir.rglob("data_summary.tsv"))
+    if not summary_files:
+        return dataset_dir.name
+    try:
+        with summary_files[0].open(encoding="utf-8") as handle:
+            lines = [line.strip() for line in handle if line.strip()]
+        if len(lines) >= 2:
+            organism = lines[1].split("\t")[0].strip()
+            if organism:
+                return organism.replace(" ", "_")
+    except OSError:
+        pass
+    return dataset_dir.name
+
+
+def select_genomic_fasta(dataset_dir: Path) -> Path | None:
+    """Pick RefSeq (GCF) or GenBank (GCA) genomic FASTA from an NCBI dataset folder."""
+    fna_files = sorted(dataset_dir.rglob("*_genomic.fna"))
+    gcf_files = [path for path in fna_files if path.name.startswith("GCF_")]
+    gca_files = [path for path in fna_files if path.name.startswith("GCA_")]
+    if gcf_files:
+        return gcf_files[0]
+    if gca_files:
+        return gca_files[0]
+    return None
+
+
+def discover_ncbi_genomes(input_dir: Path) -> dict[str, Path]:
+    """Map organism names to genomic FASTA paths under ncbi_dataset* folders."""
+    genomes: dict[str, Path] = {}
+    for dataset_dir in sorted(input_dir.glob("ncbi_dataset*")):
+        if not dataset_dir.is_dir():
+            continue
+        fasta_path = select_genomic_fasta(dataset_dir)
+        if fasta_path is None:
+            continue
+        organism = read_organism_name(dataset_dir)
+        key = organism
+        suffix = 2
+        while key in genomes:
+            key = f"{organism}_{suffix}"
+            suffix += 1
+        genomes[key] = fasta_path
+    return genomes
+
+
+def load_pooled_sequence(fasta_path: Path) -> str:
+    """Concatenate all contigs/chromosomes from a genomic FASTA into one sequence."""
+    parts: list[str] = []
+    try:
+        for record in SeqIO.parse(fasta_path, "fasta"):
+            parts.append(normalize_sequence(str(record.seq)))
+    except Exception as exc:
+        raise RuntimeError(f"Failed to parse {fasta_path}: {exc}") from exc
+    if not parts:
+        raise ValueError(f"No sequences found in {fasta_path}")
+    return "".join(parts)
+
+
+def has_sequence_data(input_dir: Path) -> bool:
+    """Return True if input_dir contains usable FASTA or NCBI dataset folders."""
+    if discover_ncbi_genomes(input_dir):
+        return True
+    extensions = ("*.fa", "*.fasta", "*.fna")
+    return any(files for ext in extensions for files in input_dir.glob(ext))
+
+
 def load_sequences(input_dir: Path) -> dict[str, str]:
-    """Load all FASTA sequences from a directory."""
+    """Load sequences from NCBI dataset folders or flat FASTA files."""
+    ncbi_genomes = discover_ncbi_genomes(input_dir)
+    if ncbi_genomes:
+        sequences: dict[str, str] = {}
+        for organism, fasta_path in ncbi_genomes.items():
+            print(f"Loading {organism} from {fasta_path.name}...")
+            sequences[organism] = load_pooled_sequence(fasta_path)
+        return sequences
+
     sequences: dict[str, str] = {}
-    fasta_files = sorted(input_dir.glob("*.fa")) + sorted(input_dir.glob("*.fasta"))
+    fasta_files = sorted(
+        list(input_dir.glob("*.fa"))
+        + list(input_dir.glob("*.fasta"))
+        + list(input_dir.glob("*.fna"))
+    )
     if not fasta_files:
         raise FileNotFoundError(
-            f"No FASTA files found in {input_dir}. "
-            "Place .fa or .fasta files there, or use --demo."
+            f"No FASTA/FNA files or ncbi_dataset* folders found in {input_dir}. "
+            "Place NCBI datasets under data/ncbi_dataset1..N, or use --demo."
         )
     for fasta_path in fasta_files:
         try:
@@ -110,14 +202,13 @@ def resolve_input_dir(input_dir: Path, demo: bool = False) -> Path:
     if demo:
         return create_demo_data()
 
-    fasta_present = bool(
-        list(input_dir.glob("*.fa")) + list(input_dir.glob("*.fasta"))
-    )
-    if fasta_present:
+    if has_sequence_data(input_dir):
         return input_dir
 
     demo_present = bool(
-        list(DEFAULT_DEMO_DIR.glob("*.fa")) + list(DEFAULT_DEMO_DIR.glob("*.fasta"))
+        list(DEFAULT_DEMO_DIR.glob("*.fa"))
+        + list(DEFAULT_DEMO_DIR.glob("*.fasta"))
+        + list(DEFAULT_DEMO_DIR.glob("*.fna"))
     )
     if demo_present:
         return DEFAULT_DEMO_DIR
