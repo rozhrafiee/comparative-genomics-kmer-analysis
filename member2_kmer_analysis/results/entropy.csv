@@ -1,0 +1,6 @@
+sequence_id,k,total_kmers,unique_kmers,shannon_entropy
+Caenorhabditis_elegans,4,100286398,256,7.635997309629317
+Neurospora_crassa_OR74A,4,41061600,256,7.964964757221336
+Yarrowia_lipolytica,4,20500063,256,7.945793996801861
+Dictyostelium_discoideum_AX4,4,34181828,256,6.916646018247737
+Eremothecium_coryli_CBS_5749,4,9029466,256,7.885090566793117
