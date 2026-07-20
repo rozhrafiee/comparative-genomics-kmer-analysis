@@ -1,0 +1,4 @@
+4db6abcc2dae8c82a00d3f83a63cb490  ncbi_dataset/data/data_summary.tsv
+6a7b861a9da30bd698636d45a49bcefd  ncbi_dataset/data/assembly_data_report.jsonl
+fea62bc00fd26fbdecaf5d671c416a70  ncbi_dataset/data/GCA_000710315.1/GCA_000710315.1_Eremothecium_coryli_genomic.fna
+26769512563ef14ee8c1f725c4ae2cb1  ncbi_dataset/data/dataset_catalog.json
