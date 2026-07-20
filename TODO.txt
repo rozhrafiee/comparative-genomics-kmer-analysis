@@ -1,0 +1,30 @@
+ژنوم و GC Content
+تسک 1: دانلود و آماده‌سازی داده‌ها
+دانلود FASTA
+دانلود GFF/GTF
+ثبت Assembly Version
+ثبت Source
+تسک 2: مشخصات ژنوم
+تعداد کروموزوم‌ها
+طول هر کروموزوم
+Genome Size
+حجم فایل
+تسک 3: تحلیل GC Content
+GC کل ژنوم
+GC هر کروموزوم
+مقایسه GC بین گونه‌ها
+تسک 4: تحلیل آماری GC
+رابطه Genome Size و GC
+Pearson Correlation
+Spearman Correlation
+ANOVA/Kruskal-Wallis برای GC
+تسک 5: مصورسازی
+Bar Plot GC%
+Scatter Plot GC vs Genome Size
+Box Plot کروموزوم‌ها
+Correlation Matrix
+خروجی‌های نفر اول
+genome_summary.csv
+gc_results.csv
+نمودارهای GC
+پاسخ کامل بخش‌های 1 و 2 و بخشی از بخش 5

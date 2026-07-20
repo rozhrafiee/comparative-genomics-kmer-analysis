@@ -1,0 +1,7 @@
+2026-07-20 19:03:32,125 INFO Validating GCA_000002985.3_WBcel235_genomic.fna
+2026-07-20 19:03:43,354 INFO Validating GCA_000004695.1_dicty_2.7_genomic.fna
+2026-07-20 19:03:47,146 INFO Validating GCA_000182925.2_NC12_genomic.fna
+2026-07-20 19:03:51,573 INFO Validating GCA_000710315.1_Eremothecium_coryli_genomic.fna
+2026-07-20 19:03:52,553 INFO Validating GCA_001761485.1_ASM176148v1_genomic.fna
+2026-07-20 19:03:56,532 INFO Statistical testing completed on 5 organism-level genomes and 92 record-level observations
+2026-07-20 19:04:00,070 INFO Completed analysis: 92 records, 5 organisms, 6 statistical rows
