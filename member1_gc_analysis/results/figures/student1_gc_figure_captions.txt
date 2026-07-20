@@ -1,0 +1,13 @@
+Figure 1. Whole-genome GC percentage calculated from summed G+C and valid A+T+G+C counts.
+Figure 2. Total uploaded FASTA sequence length in megabases.
+Figure 3. Each point is one supplied genome; annotations identify organisms.
+Figure 4. Ordinary least-squares trend is descriptive and is not a causal model.
+Figure 5. Record-level GC distributions; records nested within an organism are not independent biological replicates.
+Figure 6. Violin distributions with median markers; sparse groups should be interpreted cautiously.
+Figure 7. Lengths of records classified from headers as chromosomes or linkage groups; the 40 longest are shown for readability.
+Figure 8. Pearson correlations among organism-level GC and selected genome characteristics.
+Figure 10. N and other IUPAC ambiguous symbols as percentages of total sequence length.
+Figure 11. Q-Q diagnostics for record-level GC distributions; groups with fewer than three records are marked n < 3.
+Figure 12. Record-level GC percentage versus sequence length.
+Figure 13. GC values for records explicitly labelled chromosome or linkage group.
+Figure 14. Weighted nuclear and organellar GC; an organellar category is shown only where supplied headers identify it.
