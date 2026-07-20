@@ -1,0 +1,5 @@
+sequence_id,promoter_length,tata_box_count,tata_variant_count,has_canonical_tata,first_tata_position,first_tata_motif,all_tata_positions
+species_A,500,1,2,True,13.0,TATAAA,13
+species_B,500,1,2,True,15.0,TATAAA,15
+species_C,500,0,0,False,,,
+species_D,500,1,2,True,13.0,TATAAA,13

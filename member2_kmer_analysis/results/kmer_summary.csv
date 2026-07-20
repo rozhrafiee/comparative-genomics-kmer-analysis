@@ -1,0 +1,5 @@
+sequence_id,sequence_length,k,total_kmers,unique_kmers,most_common_kmer,most_common_count,kmer_diversity
+species_A,115,4,112,18,ATCG,17,0.16071428571428573
+species_B,113,4,110,11,GCTA,27,0.1
+species_C,112,4,109,27,GATC,20,0.24770642201834864
+species_D,112,4,109,14,CGCG,49,0.12844036697247707

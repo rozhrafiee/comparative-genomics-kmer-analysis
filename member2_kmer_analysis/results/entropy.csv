@@ -1,0 +1,5 @@
+sequence_id,k,total_kmers,unique_kmers,shannon_entropy
+species_A,4,112,18,3.4244910467976664
+species_B,4,110,11,2.3923942160808576
+species_C,4,109,27,3.5879421543467944
+species_D,4,109,14,1.784707422058939
