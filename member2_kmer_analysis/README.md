@@ -13,6 +13,11 @@ This module analyzes DNA sequences from FASTA files and produces:
 | `distance_matrix.csv` | Pairwise Euclidean distance matrix |
 | `cosine_similarity.csv` | Pairwise cosine similarity matrix |
 | `tata_box.csv` | TATA box motif detection in promoter regions |
+| `species_level_metrics.csv` | One row per organism: genome size, k-mer diversity, Shannon entropy, GC% (if available) — in `results/statistics/` |
+| `per_record_metrics.csv` | One row per chromosome/scaffold: Shannon entropy and k-mer diversity (sample groups for ANOVA/Kruskal-Wallis) — in `results/statistics/` |
+| `correlation_results.csv` | Pearson & Spearman correlation: genome size vs. entropy/diversity, GC% vs. entropy/diversity — in `results/statistics/` |
+| `anova_kruskal_results.csv` | One-way ANOVA and Kruskal-Wallis across organisms (entropy, k-mer diversity) — in `results/statistics/` |
+| `mannwhitney_pairwise.csv` | Pairwise Mann-Whitney U test between every pair of organisms, Bonferroni-corrected — in `results/statistics/` |
 
 | Figure | Description |
 |--------|-------------|
@@ -76,7 +81,11 @@ python scripts/clustering.py
 # 5. TATA box motif analysis
 python scripts/tata_box.py
 
-# 6. Generate all figures (run entropy.py first for entropy figure)
+# 6. Statistical analysis (correlation, ANOVA, Kruskal-Wallis, Mann-Whitney)
+#    Requires kmer_summary.csv and entropy.csv to already exist (steps 1 & 2)
+python scripts/stats_tests.py
+
+# 7. Generate all figures (run entropy.py first for entropy figure)
 python scripts/visualization.py
 ```
 
@@ -88,6 +97,7 @@ python scripts/entropy.py
 python scripts/similarity.py
 python scripts/clustering.py
 python scripts/tata_box.py
+python scripts/stats_tests.py
 python scripts/visualization.py
 ```
 
@@ -111,6 +121,8 @@ python scripts/visualization.py
 | `similarity.py` | Euclidean distance and cosine similarity matrices |
 | `clustering.py` | PCA dimensionality reduction and hierarchical clustering |
 | `tata_box.py` | Canonical TATA box (TATAAA) detection in 5' regions |
+| `stats_tests.py` | Correlation (Pearson/Spearman) and significance testing (ANOVA, Kruskal-Wallis, Mann-Whitney) |
+| `stats_visualization.py` | Figures for stats_tests.py outputs (correlation scatter, boxplots, ANOVA/Kruskal summary, Mann-Whitney heatmap) |
 | `visualization.py` | Heatmaps, PCA plot, dendrogram, entropy comparison |
 
 ## Methods
@@ -131,6 +143,11 @@ H = −Σ pᵢ log₂(pᵢ) computed over the k-mer frequency distribution. High
 
 ### TATA Box
 Scans the first 500 bp (configurable) for the canonical eukaryotic promoter motif `TATAAA` and variants.
+
+### Statistical Analysis
+Two families of tests, following بخش پنجم of the project brief:
+- **Species-level correlation** (n = number of organisms; one pooled value per species): Pearson and Spearman correlation between genome size and Shannon entropy / k-mer diversity, and — if `member1_gc_analysis` results are present (read-only, never modified) — the same two correlations against GC%. With only a handful of organisms this is exploratory, not strong statistical evidence, and is flagged as such in the output.
+- **Group-level significance tests** (samples = individual chromosomes/scaffolds within each organism): one-way ANOVA and Kruskal-Wallis test whether entropy / k-mer diversity differ significantly across species, plus pairwise Mann-Whitney U tests between every pair of organisms with a Bonferroni-corrected significance flag.
 
 ## Dependencies
 
@@ -153,12 +170,23 @@ member2_kmer_analysis/
 │   ├── pca_coordinates.csv
 │   ├── pca_variance.csv
 │   ├── linkage_matrix.csv
+│   ├── statistics/
+│   │   ├── species_level_metrics.csv
+│   │   ├── per_record_metrics.csv
+│   │   ├── correlation_results.csv
+│   │   ├── anova_kruskal_results.csv
+│   │   └── mannwhitney_pairwise.csv
 │   └── figures/
 │       ├── heatmap.png
 │       ├── similarity_matrix.png
 │       ├── pca.png
 │       ├── dendrogram.png
-│       └── entropy_comparison.png
+│       ├── entropy_comparison.png
+│       ├── correlation_scatter.png
+│       ├── entropy_by_organism_boxplot.png
+│       ├── diversity_by_organism_boxplot.png
+│       ├── anova_kruskal_summary.png
+│       └── mannwhitney_heatmap.png
 ├── scripts/
 └── requirements.txt
 ```

@@ -1,0 +1,5 @@
+variable_x,variable_y,n,pearson_r,pearson_p,spearman_rho,spearman_p,note
+genome_size,shannon_entropy,5,-0.1505191574033788,0.8090791953542156,-0.09999999999999999,0.8728885715695383,low statistical power (small n)
+genome_size,kmer_diversity,5,-0.7428574247967478,0.15034542863238057,-0.9999999999999999,1.4042654220543672e-24,low statistical power (small n)
+gc_percent,shannon_entropy,5,0.966094518363889,0.007456200687136317,0.8999999999999998,0.03738607346849874,low statistical power (small n)
+gc_percent,kmer_diversity,5,0.23320066071165652,0.7057933019822713,0.3,0.6238376647810728,low statistical power (small n)

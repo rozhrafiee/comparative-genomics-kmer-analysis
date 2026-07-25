@@ -133,6 +133,60 @@ def load_pooled_sequence(fasta_path: Path) -> str:
     return "".join(parts)
 
 
+def load_sequences_by_record(input_dir: Path) -> dict[str, list[tuple[str, str]]]:
+    """Load per-chromosome/scaffold sequences grouped by organism (unpooled).
+
+    Unlike load_sequences()/load_pooled_sequence(), this keeps each FASTA
+    record separate so per-organism *groups* of values (e.g. one Shannon
+    entropy value per chromosome) can be built for statistical tests such
+    as ANOVA / Kruskal-Wallis that need multiple samples per group.
+
+    Returns: {organism: [(record_id, sequence), ...], ...}
+    """
+    ncbi_genomes = discover_ncbi_genomes(input_dir)
+    grouped: dict[str, list[tuple[str, str]]] = {}
+
+    if ncbi_genomes:
+        for organism, fasta_path in ncbi_genomes.items():
+            records: list[tuple[str, str]] = []
+            try:
+                for record in SeqIO.parse(fasta_path, "fasta"):
+                    seq = normalize_sequence(str(record.seq))
+                    if seq:
+                        records.append((record.id, seq))
+            except Exception as exc:
+                raise RuntimeError(f"Failed to parse {fasta_path}: {exc}") from exc
+            if records:
+                grouped[organism] = records
+        return grouped
+
+    fasta_files = sorted(
+        list(input_dir.glob("*.fa"))
+        + list(input_dir.glob("*.fasta"))
+        + list(input_dir.glob("*.fna"))
+    )
+    if not fasta_files:
+        raise FileNotFoundError(
+            f"No FASTA/FNA files or ncbi_dataset* folders found in {input_dir}. "
+            "Place NCBI datasets under data/ncbi_dataset1..N, or use --demo."
+        )
+    for fasta_path in fasta_files:
+        organism = fasta_path.stem
+        records: list[tuple[str, str]] = []
+        try:
+            for record in SeqIO.parse(fasta_path, "fasta"):
+                seq = normalize_sequence(str(record.seq))
+                if seq:
+                    records.append((record.id, seq))
+        except Exception as exc:
+            raise RuntimeError(f"Failed to parse {fasta_path}: {exc}") from exc
+        if records:
+            grouped[organism] = records
+    if not grouped:
+        raise ValueError(f"No sequences loaded from {input_dir}")
+    return grouped
+
+
 def has_sequence_data(input_dir: Path) -> bool:
     """Return True if input_dir contains usable FASTA or NCBI dataset folders."""
     if discover_ncbi_genomes(input_dir):
