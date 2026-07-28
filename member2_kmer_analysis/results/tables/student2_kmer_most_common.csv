@@ -1,4 +1,4 @@
-k,organism,most_common_kmer,most_common_count
+k,organism,kmer,count
 3,Caenorhabditis_elegans,TTT,6287034
 3,Neurospora_crassa,TTT,875051
 3,Yarrowia_lipolytica,CAA,416599

@@ -1,0 +1,27 @@
+analysis,test,variables,n,statistic,p_value,extra,note
+correlation,Pearson,genome_size vs kmer_diversity,5,-0.7428574247967478,0.15034542863238057,spearman_rho=-1.000000;spearman_p=1.40427e-24,low power (small n)
+correlation,Pearson,gc_percent vs genome_size,5,-0.24863063315958012,0.6867261177155706,spearman_rho=-0.300000;spearman_p=0.623838,low power (small n)
+correlation,Pearson,gc_percent vs shannon_entropy,5,0.966094518363889,0.007456200687136317,spearman_rho=0.900000;spearman_p=0.0373861,low power (small n)
+correlation,Pearson,tata_box_count vs gc_percent,5,0.11158921529669427,0.858215618111856,spearman_rho=-0.111803;spearman_p=0.857945,low power (small n)
+group_test,ANOVA,shannon_entropy,94,19.80908387399981,1.0865033261035296e-11,kruskal_h=42.762975;kruskal_p=1.15885e-08;Caenorhabditis_elegans=7;Dictyostelium_discoideum=41;Eremothecium_coryli=19;Neurospora_crassa=21;Yarrowia_lipolytica=6,
+pairwise,Mann-Whitney,shannon_entropy: Caenorhabditis_elegans vs Dictyostelium_discoideum,48,249.0,0.0010727556093603897,,
+pairwise,Mann-Whitney,shannon_entropy: Caenorhabditis_elegans vs Eremothecium_coryli,26,0.0,3.040437823046519e-06,,
+pairwise,Mann-Whitney,shannon_entropy: Caenorhabditis_elegans vs Neurospora_crassa,28,85.0,0.5677848721326982,,
+pairwise,Mann-Whitney,shannon_entropy: Caenorhabditis_elegans vs Yarrowia_lipolytica,13,0.0,0.0011655011655011655,,
+pairwise,Mann-Whitney,shannon_entropy: Dictyostelium_discoideum vs Eremothecium_coryli,60,0.0,6.34226548216685e-10,,
+pairwise,Mann-Whitney,shannon_entropy: Dictyostelium_discoideum vs Neurospora_crassa,62,345.0,0.20613536285361667,,
+pairwise,Mann-Whitney,shannon_entropy: Dictyostelium_discoideum vs Yarrowia_lipolytica,47,0.0,1.862618303037381e-07,,
+pairwise,Mann-Whitney,shannon_entropy: Eremothecium_coryli vs Neurospora_crassa,40,266.0,0.07384997829416654,,
+pairwise,Mann-Whitney,shannon_entropy: Eremothecium_coryli vs Yarrowia_lipolytica,25,0.0,1.1293054771315642e-05,,
+pairwise,Mann-Whitney,shannon_entropy: Neurospora_crassa vs Yarrowia_lipolytica,27,42.0,0.2388703084355258,,
+group_test,ANOVA,kmer_diversity,94,13.375484121159129,1.415747767518784e-08,kruskal_h=39.674432;kruskal_p=5.05413e-08;Caenorhabditis_elegans=7;Dictyostelium_discoideum=41;Eremothecium_coryli=19;Neurospora_crassa=21;Yarrowia_lipolytica=6,
+pairwise,Mann-Whitney,kmer_diversity: Caenorhabditis_elegans vs Dictyostelium_discoideum,48,9.0,2.55333925708041e-06,,
+pairwise,Mann-Whitney,kmer_diversity: Caenorhabditis_elegans vs Eremothecium_coryli,26,19.0,0.004490726664639708,,
+pairwise,Mann-Whitney,kmer_diversity: Caenorhabditis_elegans vs Neurospora_crassa,28,13.0,0.0005540353366440323,,
+pairwise,Mann-Whitney,kmer_diversity: Caenorhabditis_elegans vs Yarrowia_lipolytica,13,6.0,0.03496503496503496,,
+pairwise,Mann-Whitney,kmer_diversity: Dictyostelium_discoideum vs Eremothecium_coryli,60,662.0,1.5433459370330474e-05,,
+pairwise,Mann-Whitney,kmer_diversity: Dictyostelium_discoideum vs Neurospora_crassa,62,669.0,0.0004002201285244836,,
+pairwise,Mann-Whitney,kmer_diversity: Dictyostelium_discoideum vs Yarrowia_lipolytica,47,213.0,0.0024541858760820535,,
+pairwise,Mann-Whitney,kmer_diversity: Eremothecium_coryli vs Neurospora_crassa,40,157.0,0.25531823723812774,,
+pairwise,Mann-Whitney,kmer_diversity: Eremothecium_coryli vs Yarrowia_lipolytica,25,114.0,1.1293054771315642e-05,,
+pairwise,Mann-Whitney,kmer_diversity: Neurospora_crassa vs Yarrowia_lipolytica,27,84.0,0.2388703084355258,,

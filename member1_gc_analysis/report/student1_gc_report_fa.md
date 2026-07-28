@@ -169,6 +169,6 @@ GC_Percent_Valid_ATGC = 100 × (G + C) / (A + T + G + C)
 - `results/logs/student1_gc_analysis.log`
 - `results/logs/student1_gc_quality_control_report.txt`
 - `report/student1_gc_report_fa.md`
-- `report/student1_gc_oral_presentation_guide_fa.md`
+- `../../presentation/راهنمای_ارائه.md` (oral presentation guide)
 - `README.md`
 - `requirements.txt`

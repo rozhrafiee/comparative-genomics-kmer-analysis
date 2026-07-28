@@ -1,0 +1,6 @@
+organism,promoter_length,tata_box_count,has_canonical_tata,first_tata_position,all_tata_positions
+Caenorhabditis_elegans,500,0,False,,
+Neurospora_crassa,500,5,True,318.0,318;341;350;364;377
+Yarrowia_lipolytica,500,0,False,,
+Dictyostelium_discoideum,500,2,True,62.0,62;242
+Eremothecium_coryli,500,0,False,,
