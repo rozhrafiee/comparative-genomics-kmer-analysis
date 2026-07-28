@@ -32,6 +32,7 @@ import sys
 from itertools import combinations
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from scipy import stats
 
@@ -59,15 +60,8 @@ DEFAULT_GC_SUMMARY_PATH = (
 )
 
 ALPHA = 0.05
-STATS_SUBDIR_NAME = "statistics"
-
-
-def get_stats_dir(output_dir: Path) -> Path:
-    """results/statistics/ — keeps stats_tests.py's CSVs separate from the
-    core pipeline outputs (kmer_summary.csv, entropy.csv, etc.) in results/."""
-    stats_dir = output_dir / STATS_SUBDIR_NAME
-    stats_dir.mkdir(parents=True, exist_ok=True)
-    return stats_dir
+PERMUTATION_RESAMPLES = 999
+PERMUTATION_RANDOM_STATE = 42
 
 
 def _norm_name(name: str) -> str:
@@ -169,12 +163,95 @@ def attach_gc_content(species_df: pd.DataFrame, gc_summary_path: Path) -> pd.Dat
     return merged
 
 
+def attach_tata_metrics(species_df: pd.DataFrame, output_dir: Path) -> pd.DataFrame:
+    """Attach TATA box counts from tata_box.csv (read-only relative to output_dir)."""
+    tata_path = output_dir / "tata_box.csv"
+    if not tata_path.exists():
+        print(
+            f"Note: TATA results not found at {tata_path} — "
+            "skipping TATA↔GC correlation.",
+            file=sys.stderr,
+        )
+        return species_df
+
+    try:
+        tata_df = pd.read_csv(tata_path)
+    except (OSError, pd.errors.ParserError) as exc:
+        print(f"Note: could not read TATA results ({exc}) — skipping TATA↔GC.",
+              file=sys.stderr)
+        return species_df
+
+    if "sequence_id" not in tata_df.columns or "tata_box_count" not in tata_df.columns:
+        print(
+            "Note: tata_box.csv is missing expected columns "
+            "('sequence_id', 'tata_box_count') — skipping TATA↔GC.",
+            file=sys.stderr,
+        )
+        return species_df
+
+    tata_df = tata_df[["sequence_id", "tata_box_count"]].rename(
+        columns={"sequence_id": "organism"}
+    )
+    merged = species_df.merge(tata_df, on="organism", how="left")
+    n_matched = merged["tata_box_count"].notna().sum()
+    print(f"Matched TATA counts for {n_matched}/{len(merged)} organism(s).")
+    return merged
+
+
+def _pearson_correlation_statistic(x: np.ndarray, y: np.ndarray) -> float:
+    return float(stats.pearsonr(x, y).statistic)
+
+
+def permutation_correlation_p(
+    x: np.ndarray, y: np.ndarray, n_resamples: int = PERMUTATION_RESAMPLES
+) -> float | None:
+    """Two-sided permutation p-value for Pearson correlation (n must be >= 3)."""
+    if len(x) < 3:
+        return None
+    result = stats.permutation_test(
+        (x, y),
+        _pearson_correlation_statistic,
+        permutation_type="pairings",
+        alternative="two-sided",
+        n_resamples=n_resamples,
+        random_state=PERMUTATION_RANDOM_STATE,
+    )
+    return float(result.pvalue)
+
+
+def _anova_f_statistic(*groups: np.ndarray) -> float:
+    return float(stats.f_oneway(*groups).statistic)
+
+
+def permutation_anova_p(
+    groups: list[np.ndarray], n_resamples: int = PERMUTATION_RESAMPLES
+) -> float | None:
+    """Permutation p-value for one-way ANOVA F-statistic across groups."""
+    if len(groups) < 2 or any(len(g) < 1 for g in groups):
+        return None
+    result = stats.permutation_test(
+        groups,
+        _anova_f_statistic,
+        permutation_type="independent",
+        alternative="greater",
+        n_resamples=n_resamples,
+        random_state=PERMUTATION_RANDOM_STATE,
+    )
+    return float(result.pvalue)
+
+
 def compute_correlations(species_df: pd.DataFrame) -> pd.DataFrame:
     """Pearson and Spearman correlation for each variable pair of interest,
     computed across organisms (n = number of organisms)."""
     pairs = [("genome_size", "shannon_entropy"), ("genome_size", "kmer_diversity")]
     if "gc_percent" in species_df.columns:
-        pairs += [("gc_percent", "shannon_entropy"), ("gc_percent", "kmer_diversity")]
+        pairs += [
+            ("gc_percent", "genome_size"),
+            ("gc_percent", "shannon_entropy"),
+            ("gc_percent", "kmer_diversity"),
+        ]
+    if "gc_percent" in species_df.columns and "tata_box_count" in species_df.columns:
+        pairs.append(("tata_box_count", "gc_percent"))
 
     rows = []
     for x_col, y_col in pairs:
@@ -186,17 +263,22 @@ def compute_correlations(species_df: pd.DataFrame) -> pd.DataFrame:
                     "variable_x": x_col, "variable_y": y_col, "n": n,
                     "pearson_r": None, "pearson_p": None,
                     "spearman_rho": None, "spearman_p": None,
+                    "permutation_p": None,
                     "note": "n < 3, correlation not computed",
                 }
             )
             continue
-        pearson_r, pearson_p = stats.pearsonr(sub[x_col], sub[y_col])
-        spearman_rho, spearman_p = stats.spearmanr(sub[x_col], sub[y_col])
+        x_vals = sub[x_col].to_numpy()
+        y_vals = sub[y_col].to_numpy()
+        pearson_r, pearson_p = stats.pearsonr(x_vals, y_vals)
+        spearman_rho, spearman_p = stats.spearmanr(x_vals, y_vals)
+        perm_p = permutation_correlation_p(x_vals, y_vals)
         rows.append(
             {
                 "variable_x": x_col, "variable_y": y_col, "n": n,
                 "pearson_r": pearson_r, "pearson_p": pearson_p,
                 "spearman_rho": spearman_rho, "spearman_p": spearman_p,
+                "permutation_p": perm_p,
                 "note": "low statistical power (small n)" if n < 10 else "",
             }
         )
@@ -224,10 +306,12 @@ def compute_group_tests(per_record_df: pd.DataFrame, metric: str) -> dict:
     if len(usable_groups) >= 2 and all(len(g) >= 2 for g in usable_groups):
         f_stat, anova_p = stats.f_oneway(*usable_groups)
         h_stat, kw_p = stats.kruskal(*usable_groups)
+        perm_p = permutation_anova_p(usable_groups)
         result.update(
             {
                 "anova_f": f_stat, "anova_p": anova_p,
                 "kruskal_h": h_stat, "kruskal_p": kw_p,
+                "permutation_p": perm_p,
                 "note": "",
             }
         )
@@ -236,6 +320,7 @@ def compute_group_tests(per_record_df: pd.DataFrame, metric: str) -> dict:
             {
                 "anova_f": None, "anova_p": None,
                 "kruskal_h": None, "kruskal_p": None,
+                "permutation_p": None,
                 "note": (
                     "At least one organism has < 2 chromosomes/scaffolds "
                     "in this dataset, so a valid group test could not be run."
@@ -285,6 +370,25 @@ def compute_pairwise_mannwhitney(per_record_df: pd.DataFrame, metric: str) -> pd
     return pd.DataFrame(rows)
 
 
+def load_or_build_per_record_metrics(
+    results_dir: Path, input_dir: Path | None, k: int
+) -> pd.DataFrame:
+    """Reuse existing per_record_metrics.csv when present; otherwise compute from FASTA."""
+    per_record_path = results_dir / "per_record_metrics.csv"
+    if per_record_path.exists():
+        df = pd.read_csv(per_record_path)
+        required = {"organism", "shannon_entropy", "kmer_diversity"}
+        if required.issubset(df.columns) and not df.empty:
+            print(f"Reusing existing per-record metrics from {per_record_path}")
+            return df
+    if input_dir is None:
+        raise FileNotFoundError(
+            f"{per_record_path} not found and no input_dir available to rebuild it."
+        )
+    print("Building per-record metrics from FASTA (no cached CSV found)...")
+    return build_per_record_metrics(input_dir, k)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Correlation and significance testing across organisms."
@@ -305,22 +409,20 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
-        input_dir = resolve_input_dir(args.input_dir, demo=args.demo)
         args.output_dir.mkdir(parents=True, exist_ok=True)
-        stats_dir = get_stats_dir(args.output_dir)
+        out = args.output_dir
 
         # --- Species-level correlations (n = number of organisms) ---
-        # kmer_summary.csv / entropy.csv still live directly under results/
-        # (produced by kmer_analysis.py / entropy.py) — only this script's
-        # own outputs move into results/statistics/.
-        species_df = load_species_level_table(args.output_dir)
+        # All CSVs (core pipeline + stats) live under the same results/ directory.
+        species_df = load_species_level_table(out)
         species_df = attach_gc_content(species_df, args.gc_summary_path)
-        species_path = stats_dir / "species_level_metrics.csv"
+        species_df = attach_tata_metrics(species_df, out)
+        species_path = out / "species_level_metrics.csv"
         species_df.to_csv(species_path, index=False)
         print(f"Species-level metrics table saved to {species_path}")
 
         correlation_df = compute_correlations(species_df)
-        correlation_path = stats_dir / "correlation_results.csv"
+        correlation_path = out / "correlation_results.csv"
         correlation_df.to_csv(correlation_path, index=False)
         print(f"Correlation results saved to {correlation_path}")
         if len(species_df) < 10:
@@ -330,25 +432,29 @@ def main() -> int:
                 file=sys.stderr,
             )
 
-        # --- Group-level tests (samples = chromosomes/scaffolds per organism) ---
-        per_record_df = build_per_record_metrics(input_dir, args.k)
-        per_record_path = stats_dir / "per_record_metrics.csv"
-        per_record_df.to_csv(per_record_path, index=False)
-        print(f"Per-record metrics table saved to {per_record_path}")
+        # --- Group-level tests: reuse cached per_record_metrics.csv when present ---
+        per_record_path = out / "per_record_metrics.csv"
+        if per_record_path.exists():
+            per_record_df = load_or_build_per_record_metrics(out, None, args.k)
+        else:
+            input_dir = resolve_input_dir(args.input_dir, demo=args.demo)
+            per_record_df = load_or_build_per_record_metrics(out, input_dir, args.k)
+            per_record_df.to_csv(per_record_path, index=False)
+            print(f"Per-record metrics table saved to {per_record_path}")
 
         group_test_rows = [
             compute_group_tests(per_record_df, "shannon_entropy"),
             compute_group_tests(per_record_df, "kmer_diversity"),
         ]
         group_test_df = pd.DataFrame(group_test_rows)
-        group_test_path = stats_dir / "anova_kruskal_results.csv"
+        group_test_path = out / "anova_kruskal_results.csv"
         group_test_df.to_csv(group_test_path, index=False)
         print(f"ANOVA / Kruskal-Wallis results saved to {group_test_path}")
 
         mw_entropy = compute_pairwise_mannwhitney(per_record_df, "shannon_entropy")
         mw_diversity = compute_pairwise_mannwhitney(per_record_df, "kmer_diversity")
         mw_df = pd.concat([mw_entropy, mw_diversity], ignore_index=True)
-        mw_path = stats_dir / "mannwhitney_pairwise.csv"
+        mw_path = out / "mannwhitney_pairwise.csv"
         mw_df.to_csv(mw_path, index=False)
         print(f"Pairwise Mann-Whitney results saved to {mw_path}")
 

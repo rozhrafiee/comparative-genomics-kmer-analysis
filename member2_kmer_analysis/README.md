@@ -13,11 +13,11 @@ This module analyzes DNA sequences from FASTA files and produces:
 | `distance_matrix.csv` | Pairwise Euclidean distance matrix |
 | `cosine_similarity.csv` | Pairwise cosine similarity matrix |
 | `tata_box.csv` | TATA box motif detection in promoter regions |
-| `species_level_metrics.csv` | One row per organism: genome size, k-mer diversity, Shannon entropy, GC% (if available) — in `results/statistics/` |
-| `per_record_metrics.csv` | One row per chromosome/scaffold: Shannon entropy and k-mer diversity (sample groups for ANOVA/Kruskal-Wallis) — in `results/statistics/` |
-| `correlation_results.csv` | Pearson & Spearman correlation: genome size vs. entropy/diversity, GC% vs. entropy/diversity — in `results/statistics/` |
-| `anova_kruskal_results.csv` | One-way ANOVA and Kruskal-Wallis across organisms (entropy, k-mer diversity) — in `results/statistics/` |
-| `mannwhitney_pairwise.csv` | Pairwise Mann-Whitney U test between every pair of organisms, Bonferroni-corrected — in `results/statistics/` |
+| `species_level_metrics.csv` | One row per organism: genome size, k-mer diversity, Shannon entropy, GC% (if available) |
+| `per_record_metrics.csv` | One row per chromosome/scaffold: Shannon entropy and k-mer diversity (sample groups for ANOVA/Kruskal-Wallis) |
+| `correlation_results.csv` | Pearson & Spearman correlation: genome size vs. entropy/diversity, GC% vs. entropy/diversity |
+| `anova_kruskal_results.csv` | One-way ANOVA and Kruskal-Wallis across organisms (entropy, k-mer diversity) |
+| `mannwhitney_pairwise.csv` | Pairwise Mann-Whitney U test between every pair of organisms, Bonferroni-corrected |
 
 | Figure | Description |
 |--------|-------------|
@@ -159,10 +159,12 @@ Two families of tests, following بخش پنجم of the project brief:
 
 ## Output Structure
 
-```
+`
 member2_kmer_analysis/
 ├── results/
 │   ├── kmer_summary.csv
+│   ├── kmer_top_by_k.csv
+│   ├── species_unique_kmers.csv
 │   ├── entropy.csv
 │   ├── distance_matrix.csv
 │   ├── cosine_similarity.csv
@@ -170,18 +172,19 @@ member2_kmer_analysis/
 │   ├── pca_coordinates.csv
 │   ├── pca_variance.csv
 │   ├── linkage_matrix.csv
-│   ├── statistics/
-│   │   ├── species_level_metrics.csv
-│   │   ├── per_record_metrics.csv
-│   │   ├── correlation_results.csv
-│   │   ├── anova_kruskal_results.csv
-│   │   └── mannwhitney_pairwise.csv
+│   ├── species_level_metrics.csv
+│   ├── per_record_metrics.csv
+│   ├── correlation_results.csv
+│   ├── anova_kruskal_results.csv
+│   ├── mannwhitney_pairwise.csv
 │   └── figures/
+│       ├── kmer_frequency_heatmap.png
 │       ├── heatmap.png
 │       ├── similarity_matrix.png
 │       ├── pca.png
 │       ├── dendrogram.png
 │       ├── entropy_comparison.png
+│       ├── correlation_matrix.png
 │       ├── correlation_scatter.png
 │       ├── entropy_by_organism_boxplot.png
 │       ├── diversity_by_organism_boxplot.png
@@ -189,4 +192,4 @@ member2_kmer_analysis/
 │       └── mannwhitney_heatmap.png
 ├── scripts/
 └── requirements.txt
-```
+`

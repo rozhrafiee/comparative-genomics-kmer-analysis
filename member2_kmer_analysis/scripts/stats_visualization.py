@@ -3,9 +3,9 @@
 per-organism entropy/diversity distributions, ANOVA/Kruskal-Wallis summary,
 and a Mann-Whitney pairwise significance heatmap.
 
-Reads only from results/statistics/*.csv produced by stats_tests.py — no
-FASTA parsing, so this script has no Biopython dependency and can be run
-any time after stats_tests.py. Figures are saved to results/figures/,
+Reads CSV outputs from results/ produced by stats_tests.py — no FASTA
+parsing, so this script has no Biopython dependency and can be run any
+time after stats_tests.py. Figures are saved to results/figures/,
 alongside the rest of the pipeline's figures.
 
 Usage:
@@ -27,7 +27,6 @@ import seaborn as sns
 SCRIPT_DIR = Path(__file__).resolve().parent
 MODULE_DIR = SCRIPT_DIR.parent
 DEFAULT_RESULTS_DIR = MODULE_DIR / "results"
-STATS_SUBDIR_NAME = "statistics"
 
 
 DPI = 150
@@ -35,6 +34,48 @@ DPI = 150
 
 def format_label(name: str) -> str:
     return str(name).replace("_", " ")
+
+
+def plot_correlation_matrix_heatmap(stats_dir: Path, figures_dir: Path) -> Path | None:
+    """Heatmap of Pearson correlations for بخش پنجم variables."""
+    path = stats_dir / "species_level_metrics.csv"
+    if not path.exists():
+        print(f"Skip correlation matrix: {path} not found.", file=sys.stderr)
+        return None
+
+    df = pd.read_csv(path)
+    columns = ["genome_size", "gc_percent", "shannon_entropy", "kmer_diversity"]
+    available = [col for col in columns if col in df.columns and df[col].notna().any()]
+    if len(available) < 2:
+        print("Skip correlation matrix: fewer than 2 numeric columns available.",
+              file=sys.stderr)
+        return None
+
+    sub = df[available].astype(float)
+    corr = sub.corr(method="pearson")
+    labels = [format_label(col) for col in corr.columns]
+
+    fig, ax = plt.subplots(figsize=(7, 6))
+    sns.heatmap(
+        corr,
+        annot=True,
+        fmt=".2f",
+        cmap="coolwarm",
+        vmin=-1,
+        vmax=1,
+        square=True,
+        linewidths=0.5,
+        xticklabels=labels,
+        yticklabels=labels,
+        ax=ax,
+        cbar_kws={"label": "Pearson r"},
+    )
+    ax.set_title("بخش پنجم — Correlation Matrix (species-level, n = organisms)")
+    fig.tight_layout()
+    out_path = figures_dir / "correlation_matrix.png"
+    fig.savefig(out_path, dpi=DPI, bbox_inches="tight")
+    plt.close(fig)
+    return out_path
 
 
 def plot_correlation_scatter(stats_dir: Path, figures_dir: Path) -> Path | None:
@@ -188,12 +229,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Visualize stats_tests.py outputs.")
     parser.add_argument(
         "--results-dir", type=Path, default=DEFAULT_RESULTS_DIR,
-        help="Top-level results/ directory (figures/ is created under here).",
-    )
-    parser.add_argument(
-        "--stats-dir", type=Path, default=None,
-        help=f"Directory containing stats_tests.py's CSVs "
-             f"(default: <results-dir>/{STATS_SUBDIR_NAME}).",
+        help="Directory containing stats CSVs; figures/ is created under here.",
     )
     return parser.parse_args()
 
@@ -201,31 +237,32 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
-        stats_dir = args.stats_dir or (args.results_dir / STATS_SUBDIR_NAME)
-        figures_dir = args.results_dir / "figures"
+        results_dir = args.results_dir
+        figures_dir = results_dir / "figures"
         figures_dir.mkdir(parents=True, exist_ok=True)
 
-        if not stats_dir.exists():
+        if not results_dir.exists():
             print(
-                f"Error: {stats_dir} not found. Run scripts/stats_tests.py first.",
+                f"Error: {results_dir} not found. Run scripts/stats_tests.py first.",
                 file=sys.stderr,
             )
             return 1
 
         saved = []
-        saved.append(plot_correlation_scatter(stats_dir, figures_dir))
+        saved.append(plot_correlation_matrix_heatmap(results_dir, figures_dir))
+        saved.append(plot_correlation_scatter(results_dir, figures_dir))
         saved.append(plot_metric_boxplot(
-            stats_dir, figures_dir, "shannon_entropy",
+            results_dir, figures_dir, "shannon_entropy",
             "entropy_by_organism_boxplot.png",
             "Shannon Entropy per Chromosome/Scaffold, Grouped by Organism",
         ))
         saved.append(plot_metric_boxplot(
-            stats_dir, figures_dir, "kmer_diversity",
+            results_dir, figures_dir, "kmer_diversity",
             "diversity_by_organism_boxplot.png",
             "K-mer Diversity per Chromosome/Scaffold, Grouped by Organism",
         ))
-        saved.append(plot_anova_kruskal_summary(stats_dir, figures_dir))
-        saved.append(plot_mannwhitney_heatmap(stats_dir, figures_dir))
+        saved.append(plot_anova_kruskal_summary(results_dir, figures_dir))
+        saved.append(plot_mannwhitney_heatmap(results_dir, figures_dir))
 
         for path in saved:
             if path:

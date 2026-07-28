@@ -16,6 +16,7 @@ DEFAULT_INPUT_DIR = MODULE_DIR.parent / "data"
 DEFAULT_DEMO_DIR = MODULE_DIR / "results" / "demo_input"
 DEFAULT_OUTPUT_DIR = MODULE_DIR / "results"
 DEFAULT_K = 4
+MULTI_K_VALUES = (3, 4, 5)
 
 
 def get_all_kmers(k: int) -> list[str]:
@@ -248,6 +249,56 @@ def build_kmer_matrix(sequences: dict[str, str], k: int) -> pd.DataFrame:
     return pd.DataFrame(rows).set_index("sequence_id")
 
 
+def organism_kmer_set(sequence: str, k: int) -> set[str]:
+    """Return the set of k-mers with non-zero count in a sequence."""
+    return set(count_kmers(sequence, k).keys())
+
+
+def build_kmer_top_by_k_table(
+    sequences: dict[str, str], k_values: tuple[int, ...] = MULTI_K_VALUES
+) -> pd.DataFrame:
+    """Most common k-mer per organism for each k value."""
+    records = []
+    for k in k_values:
+        for seq_id, sequence in sequences.items():
+            counts = count_kmers(sequence, k)
+            most_common = counts.most_common(1)[0] if counts else ("", 0)
+            records.append(
+                {
+                    "k": k,
+                    "organism": seq_id,
+                    "most_common_kmer": most_common[0],
+                    "most_common_count": most_common[1],
+                }
+            )
+    return pd.DataFrame(records)
+
+
+def find_species_unique_kmers(
+    sequences: dict[str, str], k_values: tuple[int, ...] = MULTI_K_VALUES
+) -> pd.DataFrame:
+    """K-mers observed in exactly one organism (set difference across all sets)."""
+    records = []
+    for k in k_values:
+        organism_sets = {
+            org: organism_kmer_set(seq, k) for org, seq in sequences.items()
+        }
+        kmer_owners: dict[str, list[str]] = {}
+        for org, kmers in organism_sets.items():
+            for kmer in kmers:
+                kmer_owners.setdefault(kmer, []).append(org)
+        for kmer, owners in sorted(kmer_owners.items()):
+            if len(owners) == 1:
+                records.append(
+                    {
+                        "k": k,
+                        "kmer": kmer,
+                        "exclusive_organism": owners[0],
+                    }
+                )
+    return pd.DataFrame(records)
+
+
 def summarize_kmers(sequences: dict[str, str], k: int) -> pd.DataFrame:
     """Generate per-sequence k-mer summary statistics."""
     records = []
@@ -355,11 +406,24 @@ def main() -> int:
 
         sequences = load_sequences(input_dir)
         summary = summarize_kmers(sequences, args.k)
+        top_by_k = build_kmer_top_by_k_table(sequences)
+        species_unique = find_species_unique_kmers(sequences)
 
         args.output_dir.mkdir(parents=True, exist_ok=True)
         output_path = args.output_dir / "kmer_summary.csv"
         summary.to_csv(output_path, index=False)
         print(f"K-mer summary saved to {output_path} ({len(summary)} sequences)")
+
+        top_by_k_path = args.output_dir / "kmer_top_by_k.csv"
+        top_by_k.to_csv(top_by_k_path, index=False)
+        print(f"Multi-k top k-mers saved to {top_by_k_path} ({len(top_by_k)} rows)")
+
+        species_unique_path = args.output_dir / "species_unique_kmers.csv"
+        species_unique.to_csv(species_unique_path, index=False)
+        print(
+            f"Species-unique k-mers saved to {species_unique_path} "
+            f"({len(species_unique)} rows)"
+        )
         return 0
     except (FileNotFoundError, ValueError, RuntimeError) as exc:
         print(f"Error: {exc}", file=sys.stderr)

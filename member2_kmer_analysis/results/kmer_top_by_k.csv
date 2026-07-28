@@ -1,0 +1,16 @@
+k,organism,most_common_kmer,most_common_count
+3,Caenorhabditis_elegans,TTT,6287034
+3,Neurospora_crassa,TTT,875051
+3,Yarrowia_lipolytica,CAA,416599
+3,Dictyostelium_discoideum,AAA,3131027
+3,Eremothecium_coryli,AAA,254667
+4,Caenorhabditis_elegans,AAAA,2977271
+4,Neurospora_crassa,TTTT,280073
+4,Yarrowia_lipolytica,TTTT,139253
+4,Dictyostelium_discoideum,AAAA,1845792
+4,Eremothecium_coryli,AAAA,80029
+5,Caenorhabditis_elegans,AAAAA,1354147
+5,Neurospora_crassa,TTTTT,106524
+5,Yarrowia_lipolytica,AAAAA,53846
+5,Dictyostelium_discoideum,AAAAA,1247746
+5,Eremothecium_coryli,AAAAA,25068

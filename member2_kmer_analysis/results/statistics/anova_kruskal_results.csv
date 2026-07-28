@@ -1,3 +1,0 @@
-metric,n_groups,group_sizes,anova_f,anova_p,kruskal_h,kruskal_p,note
-shannon_entropy,5,Caenorhabditis_elegans=7;Dictyostelium_discoideum=41;Eremothecium_coryli=19;Neurospora_crassa=21;Yarrowia_lipolytica=6,19.80908387399981,1.086503326103531e-11,42.76297489962582,1.1588492167335465e-08,
-kmer_diversity,5,Caenorhabditis_elegans=7;Dictyostelium_discoideum=41;Eremothecium_coryli=19;Neurospora_crassa=21;Yarrowia_lipolytica=6,13.375484121159129,1.4157477675187727e-08,39.6744321268032,5.0541278341436954e-08,

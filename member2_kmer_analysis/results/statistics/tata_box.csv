@@ -1,6 +1,0 @@
-sequence_id,promoter_length,tata_box_count,tata_variant_count,has_canonical_tata,first_tata_position,first_tata_motif,all_tata_positions
-Caenorhabditis_elegans,500,0,0,False,,,
-Neurospora_crassa,500,5,13,True,318.0,TATAAA,318;341;350;364;377
-Yarrowia_lipolytica,500,0,0,False,,,
-Dictyostelium_discoideum,500,2,6,True,62.0,TATAAA,62;242
-Eremothecium_coryli,500,0,2,False,,,

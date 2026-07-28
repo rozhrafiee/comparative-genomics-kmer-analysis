@@ -47,6 +47,32 @@ def ensure_figures_dir(output_dir: Path) -> Path:
     return figures_dir
 
 
+def plot_kmer_frequency_heatmap(kmer_matrix: pd.DataFrame, figures_dir: Path) -> Path:
+    """Heatmap of normalized k-mer frequencies (organisms × k-mers)."""
+    labeled = kmer_matrix.copy()
+    labeled.index = [format_organism_label(str(idx)) for idx in labeled.index]
+    fig_height = max(6, 0.35 * len(labeled) + 2)
+    fig_width = max(12, min(24, 0.04 * labeled.shape[1] + 4))
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    sns.heatmap(
+        labeled,
+        cmap="viridis",
+        linewidths=0,
+        ax=ax,
+        cbar_kws={"label": "Normalized k-mer frequency"},
+    )
+    ax.set_title("K-mer Frequency Heatmap Across Species")
+    ax.set_xlabel("k-mer")
+    ax.set_ylabel("Organism")
+    ax.tick_params(axis="x", labelsize=6, rotation=90)
+    ax.tick_params(axis="y", labelsize=9, rotation=0)
+    plt.tight_layout()
+    path = figures_dir / "kmer_frequency_heatmap.png"
+    fig.savefig(path, dpi=DPI, bbox_inches="tight")
+    plt.close(fig)
+    return path
+
+
 def plot_heatmap(dist_matrix: pd.DataFrame, figures_dir: Path) -> Path:
     """Euclidean distance heatmap."""
     labeled = with_display_labels(dist_matrix)
@@ -209,6 +235,7 @@ def main() -> int:
         figures_dir = ensure_figures_dir(args.output_dir)
 
         saved = []
+        saved.append(plot_kmer_frequency_heatmap(kmer_matrix, figures_dir))
         saved.append(plot_heatmap(dist_matrix, figures_dir))
         saved.append(plot_similarity_matrix(cos_matrix, figures_dir))
         saved.append(plot_pca(kmer_matrix, figures_dir))
